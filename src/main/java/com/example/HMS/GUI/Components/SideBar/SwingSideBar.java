@@ -7,6 +7,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -15,6 +16,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,13 +30,7 @@ public class SwingSideBar implements SideBar<JScrollPane> {
     private static final Color ACTIVE_BACKGROUND = new Color(37, 99, 235);
     private static final Color SECTION_COLOR = new Color(110, 115, 125);
 
-    private final JPanel panel = new JPanel() {
-        @Override
-        public Dimension getPreferredSize() {
-            Dimension size = super.getPreferredSize();
-            return new Dimension(width, size.height);
-        }
-    };
+    private final ScrollPanel panel = new ScrollPanel();
     private final JScrollPane scroll;
     private final List<JButton> items = new ArrayList<>();
     private final List<JLabel> sections = new ArrayList<>();
@@ -273,6 +269,44 @@ public class SwingSideBar implements SideBar<JScrollPane> {
                     itemWidth == ItemWidth.FILL ? Integer.MAX_VALUE : pref.height));
         }
         return wrap;
+    }
+
+    /**
+     * Keeps the rail at its preferred height inside the scroll pane. Without
+     * {@link Scrollable}, the viewport stretches the panel to its own height and
+     * {@link GridLayout} then spreads the buttons over all of it.
+     */
+    private final class ScrollPanel extends JPanel implements Scrollable {
+        @Override
+        public Dimension getPreferredSize() {
+            Dimension size = super.getPreferredSize();
+            return new Dimension(width, size.height);
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return Math.max(16, visibleRect.height - 16);
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
     }
 
     private int swingAlign() {

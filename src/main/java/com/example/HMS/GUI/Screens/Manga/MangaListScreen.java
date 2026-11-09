@@ -3,8 +3,8 @@ package com.example.HMS.GUI.Screens.Manga;
 import com.example.HMS.GUI.Components.DataTable.Column;
 import com.example.HMS.GUI.Components.DataTable.SelectionMode;
 import com.example.HMS.GUI.Components.DataTable.SwingDataTable;
-import com.example.HMS.GUI.Theme;
-import com.example.HMS.GUI.UI;
+import com.example.HMS.GUI.Components.Core.Theme;
+import com.example.HMS.GUI.Components.Core.UI;
 import com.example.HMS.Manga.dto.MangaRequest;
 import com.example.HMS.Manga.dto.MangaResponse;
 

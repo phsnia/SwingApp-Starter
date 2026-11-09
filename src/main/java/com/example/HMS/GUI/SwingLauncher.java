@@ -1,5 +1,8 @@
 package com.example.HMS.GUI;
 
+import com.example.HMS.GUI.Components.Core.SwingApp;
+import com.example.HMS.GUI.Components.Core.Theme;
+import com.example.HMS.GUI.Components.Core.UI;
 import com.example.HMS.GUI.Screens.LoginScreen;
 import com.example.HMS.GUI.Screens.MainScreen;
 import com.example.HMS.GUI.Screens.Manga.MangaDataSource;

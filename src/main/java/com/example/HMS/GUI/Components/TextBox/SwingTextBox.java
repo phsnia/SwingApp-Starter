@@ -1,6 +1,4 @@
-package com.example.HMS.GUI.Components.TextBox.impl;
-
-import com.example.HMS.GUI.Components.TextBox.TextBox;
+package com.example.HMS.GUI.Components.TextBox;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPasswordField;
@@ -44,6 +42,10 @@ public class SwingTextBox implements TextBox<JTextField> {
 
     public SwingTextBox(String text) {
         field = new HintField(text);
+        // A JTextField with 0 columns has almost no preferred width, so it
+        // collapses in layouts that respect preferred size. Give it a sensible
+        // default; callers can still override it with setSize(...).
+        field.setColumns(24);
         // Echo char 0 means "show text normally", so one field type can act as
         // both a plain text box and a password box.
         field.setEchoChar((char) 0);

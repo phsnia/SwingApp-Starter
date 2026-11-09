@@ -4,7 +4,8 @@ What this is, how it fits together, and how to use every component without
 reading the implementation.
 
 The library lives in `src/main/java/com/example/HMS/GUI`. Screens are built from
-small interfaces (`TextBox`, `DropMenu`, `MenuList`, `SideBar`, `DataTable`) and
+small interfaces (`TextBox`, `DropMenu`, `MenuList`, `SideBar`, `DataTable`,
+`FileDropZone`) and
 Swing implementations (`SwingTextBox`, `SwingDropMenu`, …). Create components
 through `UI` so screens never call `new SwingXxx()` directly.
 
@@ -43,12 +44,13 @@ Everything that changes Swing state belongs on the event dispatch thread (EDT).
 
 | Package | Contents |
 | --- | --- |
-| `com.example.HMS.GUI` | `UI` factory, `SwingApp` shell, `Theme`, `SwingLauncher`, `SwingDemo` |
-| `…GUI.Components.TextBox` | `TextBox<T>` interface |
-| `…GUI.Components.TextBox.impl` | `SwingTextBox` |
+| `com.example.HMS.GUI` | `SwingLauncher`, `SwingDemo`, this guide |
+| `…GUI.Components.Core` | `UI` factory, `SwingApp` shell, `Theme` |
+| `…GUI.Components.TextBox` | `TextBox<T>` interface, `SwingTextBox` |
 | `…GUI.Components.DropMenu` | `DropMenu<T>`, `SwingDropMenu` |
 | `…GUI.Components.MenuList` | `MenuList<T>`, `SwingMenuList` |
 | `…GUI.Components.SideBar` | `SideBar<T>`, `SwingSideBar`, `Dock`, `Arrangement`, `Alignment`, `ItemWidth` |
+| `…GUI.Components.DragDrop` | `FileDropZone<P>`, `SwingFileDropZone` |
 | `…GUI.Components.DataTable` | `DataTable<T,P>`, `SwingDataTable<T>`, `Column<T,V>`, `SelectionMode` |
 | `…GUI.Components.Form` | `FormDialog<T>` |
 | `…GUI.Screens` | `LoginScreen`, `MainScreen` |
@@ -70,6 +72,7 @@ UI ui = new UI();
 | `dropMenu(String... items)` | `SwingDropMenu` | Select / combo box |
 | `menuList(String label)` | `SwingMenuList` | Button + hierarchical popup |
 | `sidebar()` | `SwingSideBar` | Navigation rail |
+| `fileDropZone()` | `FileDropZone<JPanel>` | File-drop target with image preview |
 | `table()` | `SwingDataTable<T>` | Typed data table |
 | `form(Window owner, String title)` | `FormDialog<T>` | Modal form |
 
@@ -80,6 +83,7 @@ at the boundary when portability matters:
 TextBox<JTextField> box = ui.textbox();
 DataTable<MangaResponse, JPanel> table = ui.table();
 SideBar<JScrollPane> nav = ui.sidebar();
+FileDropZone<JPanel> drop = ui.fileDropZone();
 ```
 
 Every component exposes its Swing peer through `peer()`. Parent it like any
@@ -101,14 +105,35 @@ app.title("HMS — Manga Manager");
 app.setContent(myScreen);          // replaces the content area
 app.addHeaderAction(ui.menuList("Account")); // optional header buttons
 app.sidebar(sidebar);              // docks LEFT/RIGHT using SideBar.dock()
+app.changeDock(sidebar, Dock.RIGHT); // move an already-added sidebar
 app.setStatus("Signed in");
 
 app.center();
 app.show();                        // EDT-safe
 ```
 
-Useful members: `content()`, `frame()`, `setStatus(String)`, `setContent(JComponent)`,
-`add(JComponent)` (vertical stack for quick demos), `show()`, `center()`.
+### 4.1 API
+
+| Method | Description |
+| --- | --- |
+| `new SwingApp(String title)` | Builds the frame, installs `Theme`, starts at 960×600 with a 640×420 minimum. |
+| `size(int w, int h)` | Sets the frame size. |
+| `minSize(int w, int h)` | Sets the minimum frame size. |
+| `title(String)` | Updates the frame title and the header label. |
+| `setContent(JComponent)` | Replaces the content area; header, sidebar, and status bar stay. |
+| `content()` | Returns the content panel. |
+| `setStatus(String)` | Updates the status bar; `null` becomes an empty string. |
+| `addHeaderAction(JComponent)` | Adds a component to the right side of the header. |
+| `sidebar(SideBar<T>)` | Adds the rail at the side returned by `SideBar.dock()` (`WEST`/`EAST`). |
+| `changeDock(SideBar<T>, Dock)` | Updates `dock()` and moves an already-added rail to `WEST`/`EAST`. |
+| `sidebar(JComponent)` / `sidebar(JComponent, boolean right)` | Adds a raw component to the left or right edge. |
+| `add(...)` overloads | Adds a text box, drop menu, menu list, table, or raw component to the vertical stack. The `zone` overloads add to the shell's `BorderLayout` zones instead. |
+| `center()` | Centers the frame on screen; safe to call from any thread. |
+| `show()` | Makes the frame visible; safe to call from any thread. |
+| `frame()` | Returns the underlying `JFrame`. |
+
+Fluent methods return `this`. Constants: `DEFAULT_WIDTH`, `DEFAULT_HEIGHT`,
+`MIN_WIDTH`, `MIN_HEIGHT`.
 
 ---
 
@@ -142,9 +167,27 @@ Password:
 SwingTextBox password = ui.passwordBox();       // or ui.textbox().password(true)
 ```
 
-API summary: `setText`, `getText`, `clear`, `setPrompt`, `setEditable`,
-`setEnabled`, `setError`, `setMaxLength`, `password`, `onChange`, `onSubmit`,
-`focus`, `setPosition`, `setSize`, `peer()`.
+### 5.1 API
+
+| Method | Description |
+| --- | --- |
+| `setPosition(double x, double y)` | Moves the peer to pixel coordinates. Normal layout code should let the layout manager position it instead. |
+| `setSize(double w, double h)` | Sets the peer's preferred width/height. Minimum width becomes `0`; minimum height stays `h`. |
+| `getText()` | Returns the current text (`""` when empty), never the painted prompt. |
+| `setText(String)` | Replaces the text; `null` is treated as `""`. |
+| `clear()` | Clears the text. |
+| `setPrompt(String)` | Sets the paint-only placeholder. |
+| `setEditable(boolean)` | Allows or blocks user editing. |
+| `setEnabled(boolean)` | Enables or disables the field. |
+| `setError(String)` | Adds a red border and tooltip; `null` or blank clears the error. |
+| `setMaxLength(int)` | Limits the document length; `0` removes the limit. Negative values throw `IllegalArgumentException`. |
+| `password(boolean)` | Masks or unmasks the text. |
+| `onChange(Consumer<String>)` | Registers a listener for typing, paste, `setText`, and `clear`. |
+| `onSubmit(Consumer<String>)` | Registers the Enter-key handler. |
+| `focus()` | Requests focus in the window. |
+| `peer()` | Returns the underlying `JTextField` (a `JPasswordField` internally). |
+
+Fluent methods return `this` (`SwingTextBox`).
 
 Notes:
 
@@ -152,6 +195,12 @@ Notes:
 - `onChange` fires for typing, paste, `setText`, and `clear`.
 - `onSubmit` is the Enter key.
 - `peer()` returns the underlying `JTextField` (`JPasswordField` internally).
+- `setSize(w, h)` only sets the peer's **preferred** size (minimum width `0`).
+  A `GridLayout` or `BorderLayout.CENTER` parent will still stretch it; see
+  [Layout managers and sizing](#9-layout-managers-and-sizing).
+- Fields start with 24 columns, so they have a usable natural width in
+  preferred-size layouts. Use a consistent `setSize(320, 32)` in forms when you
+  want every field to line up.
 
 ---
 
@@ -175,6 +224,23 @@ status.setItems("draft", "published"); // does NOT fire a stale onSelect
 status.clearSelection();
 status.setEnabled(false);
 ```
+
+### 6.1 API
+
+| Method | Description |
+| --- | --- |
+| `setItems(String... items)` | Replaces the real items. Selection resets to the placeholder or the first item; `onSelect` is not fired. |
+| `select(int index)` | Selects a zero-based real item. Out-of-range values clear the selection. |
+| `selected()` | Returns the selected real item, or `null` for the placeholder/no selection. |
+| `selectedIndex()` | Returns the selected real item index, or `-1` for the placeholder/no selection. |
+| `count()` | Returns the number of real items, excluding the placeholder. |
+| `clearSelection()` | Shows the placeholder if one exists, otherwise clears the selection. |
+| `setEnabled(boolean)` | Enables or disables the combo box. |
+| `setPlaceholder(String)` | Adds a leading hint item that is never returned by `selected()`. |
+| `onSelect(Consumer<String>)` | Registers a listener that fires only for real selection changes. |
+| `peer()` | Returns the underlying `JComboBox<String>`. |
+
+Fluent methods return `this` (`SwingDropMenu`).
 
 Notes:
 
@@ -206,6 +272,20 @@ actions.setEnabled(false);
 app.addHeaderAction(actions.peer());
 ```
 
+### 7.1 API
+
+| Method | Description |
+| --- | --- |
+| `add(String path, Runnable action)` | Adds an enabled item. Slash-separated segments create or reuse submenus. |
+| `add(String path, Runnable action, boolean enabled)` | Adds an item that may start disabled. |
+| `addSeparator()` | Adds a separator to the root menu. |
+| `remove(String path)` | Removes the item or submenu at the path; missing paths are ignored. |
+| `setEnabled(boolean)` | Enables or disables the trigger button. |
+| `clear()` | Removes every menu item and separator. |
+| `peer()` | Returns the trigger `JButton`. |
+
+Fluent methods return `this` (`SwingMenuList`).
+
 Notes:
 
 - Path segments are trimmed: `"File / New"` becomes `File → New`.
@@ -235,26 +315,227 @@ nav.addItem("Settings", settingsIcon, () -> showSettings()); // optional Icon
 nav.setActive(0);                       // highlight item 0
 
 app.sidebar(nav);                       // dock position comes from nav.dock()
+app.changeDock(nav, Dock.RIGHT);        // move an already-added rail
 ```
+
+### 8.1 API
+
+| Method | Description |
+| --- | --- |
+| `setWidth(double width)` | Sets the rail's preferred/minimum width; default `160`. |
+| `setSpacing(double spacing)` | Sets the gap between items; default `4`. |
+| `setDock(Dock dock)` | Validates and stores `LEFT`/`RIGHT`. This only updates configuration; it does not move the component. |
+| `dock()` | Returns the stored dock side. |
+| `setArrangement(Arrangement arrangement)` | Sets `GRID`, `BOX_Y`, `BOX_X`, or `FLOW`. |
+| `arrangement()` | Returns the current arrangement. |
+| `setItemAlignment(Alignment alignment)` | Sets `LEFT`, `CENTER`, or `RIGHT`. |
+| `itemAlignment()` | Returns the current alignment. |
+| `setItemWidth(ItemWidth width)` | Sets `FILL` or `CONTENT`. |
+| `itemWidth()` | Returns the current item-width mode. |
+| `addItem(String label, Runnable action)` | Adds a button; the action runs when it is clicked. |
+| `addItem(String label, Icon icon, Runnable action)` | Adds a button with an optional icon. |
+| `addSection(String title)` | Adds a non-clickable heading; it does not count toward `size()`. |
+| `setActive(int index)` | Highlights the item at the zero-based index; `-1` or out-of-range clears it. |
+| `activeIndex()` | Returns the highlighted index, or `-1`. |
+| `clear()` | Removes all items and sections. |
+| `size()` | Returns the number of items, excluding sections. |
+| `peer()` | Returns the `JScrollPane` that contains the rail. |
+
+Enums:
+
+| Enum | Values |
+| --- | --- |
+| `Dock` | `LEFT`, `RIGHT` |
+| `Arrangement` | `GRID`, `BOX_Y`, `BOX_X`, `FLOW` |
+| `Alignment` | `LEFT`, `CENTER`, `RIGHT` |
+| `ItemWidth` | `FILL`, `CONTENT` |
+
+Fluent methods return `this` (`SwingSideBar`).
 
 Notes:
 
 - `addSection` adds a heading and does not count toward `size()`.
+- `setDock` only stores the preference. Use `app.changeDock(nav, dock)` to move
+  an already-added rail; it updates both `dock()` and the parent layout.
 - `setActive(-1)` clears the highlight; out-of-range values also clear it.
 - Items overflow vertically inside a `JScrollPane`; `peer()` returns that scroll
   pane.
+- The rail content tracks the viewport **width** but not its **height**, so
+  `Arrangement.GRID` rows keep their preferred height. A short list stays at the
+  top; a long list scrolls instead of spreading items over the window.
 - Getters: `dock()`, `arrangement()`, `itemAlignment()`, `itemWidth()`,
   `activeIndex()`, `size()`.
 
 ---
 
-## 9. `DataTable` — typed table with search, sort, paging, CRUD
+## 9. `FileDropZone` — file drop target
+
+**What it is:** a visible panel that accepts local files dropped from the desktop.
+It validates the drop, reports normalized absolute paths, and shows a best-effort
+preview of the first decodable image in the drop. It never copies, moves, or
+uploads the files.
+
+```java
+FileDropZone<JPanel> zone = ui.fileDropZone()
+        .setPrompt("Drop manga files here")
+        .onFilesDropped(paths -> status.setText("Accepted: " + paths))
+        .onDropRejected(reason -> status.setText("Rejected: " + reason));
+
+JPanel target = zone.peer();
+target.setPreferredSize(new Dimension(480, 220));
+page.add(target, BorderLayout.CENTER);
+
+zone.setEnabled(false); // stops accepting drops
+zone.clearPreview();    // removes the image and cancels a pending decode
+```
+
+### 9.1 API
+
+| Method | Description |
+| --- | --- |
+| `onFilesDropped(Consumer<List<Path>>)` | Registers the success handler. It receives one immutable list of normalized absolute paths; a drop is all-or-nothing. |
+| `onDropRejected(Consumer<String>)` | Registers the rejection handler. It receives a short, user-displayable reason. |
+| `setPrompt(String)` | Changes the visible instruction. It does not change accepted file types. |
+| `setEnabled(boolean)` | Enables or disables the target. A disabled target invokes neither callback. |
+| `clearPreview()` | Removes the current image preview and cancels a decode that is still running. Reported dropped paths are unchanged. |
+| `peer()` | Returns the `JPanel` to add to a layout. |
+
+Fluent methods return `this` (`SwingFileDropZone`).
+
+`SwingFileDropZone` also exposes two preview helpers for screens that draw
+controls over the image:
+
+- `previewBounds()` returns the drawn image area in `peer()` coordinates, or an
+  empty rectangle when no image is shown.
+- `onPreviewChanged(Runnable)` runs on the EDT whenever that area changes, so an
+  overlay can reposition or hide itself. The demo uses both to place a circular X
+  button at the image's top-right.
+
+Drop rules:
+
+- Only `DataFlavor.javaFileListFlavor` is accepted.
+- Every entry must be an existing regular file. Directories, missing files, or
+  a mixed list reject the whole drop.
+- Unsupported flavors, empty lists, and unreadable transfers call
+  `onDropRejected` and never `onFilesDropped`.
+- For an accepted drop, the zone uses `ImageIO` to find the first decodable
+  image and shows it scaled proportionally to the target. It does not rely on
+  file extensions.
+- A non-image or corrupt image is still a valid file drop. It stays in the
+  reported path list but does not produce a preview; the prompt returns.
+- A later accepted drop replaces the preview. Only the newest drop may update
+  it, so a slow earlier decode cannot overwrite a newer image.
+- Image decoding runs off the EDT; preview updates and callbacks are always
+  delivered on the EDT. Move additional file processing to a worker thread.
+- `clearPreview()` removes the image and cancels a decode that is still running.
+  A screen that wants a discard control owns that button; the demo overlays a
+  small circular X on the top-right of the target.
+- The zone keeps no dropped paths and only reads candidate images for the
+  preview.
+
+---
+
+## 10. Layout managers and sizing
+
+**What it is:** a container's `LayoutManager` decides where each child goes and
+how big it is. `getPreferredSize()`, `getMinimumSize()`, and `getMaximumSize()`
+are hints; the layout may ignore them. Choose the layout that gives the behavior
+you want instead of resizing components by hand.
+
+### 10.1 Common layouts
+
+| Layout | Sizing behavior | Use for |
+| --- | --- | --- |
+| `BorderLayout` | `NORTH`/`SOUTH` use preferred height and full width; `WEST`/`EAST` use preferred width and full height; `CENTER` takes the remaining space | Shell, sidebar + content, a table that should fill the page |
+| `GridLayout` | Equal cells; preferred size is ignored | Uniform button grids |
+| `FlowLayout` | Children keep their preferred size and wrap | Toolbars, action rows, natural-width fields |
+| `BoxLayout` | One row/column; grows children up to their maximum size | Vertical stacks |
+| `GridBagLayout` | Constraint-based; `weightx`/`weighty` share extra space, `fill` stretches the child | Label/field forms |
+| `CardLayout` | Shows one child at a time | Screen switching |
+
+### 10.2 Sizing rules
+
+```java
+component.setPreferredSize(new Dimension(320, 32)); // natural size
+component.setMinimumSize(new Dimension(120, 32));   // smallest allowed
+component.setMaximumSize(new Dimension(320, 32));   // largest allowed
+```
+
+- `GridLayout` and `BorderLayout.CENTER` override preferred size.
+- `BoxLayout` grows children up to their maximum size; set a maximum to stop it.
+- Call `revalidate()` after changing size hints on a visible screen.
+
+### 10.3 Practices
+
+**Forms — keep fields at their natural width**
+
+```java
+JPanel body = new JPanel();
+body.setOpaque(false);
+body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+
+JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+row.setOpaque(false);
+row.add(ui.textbox().setPrompt("Title").setSize(320, 32).peer());
+body.add(row);
+
+// Pin the form to the top so rows are not spread over the page height.
+JPanel top = new JPanel(new BorderLayout());
+top.setOpaque(false);
+top.add(body, BorderLayout.NORTH);
+page.add(top, BorderLayout.CENTER);
+```
+
+**Stop growth in a `BoxLayout`**
+
+```java
+JTextField field = ui.textbox().setPrompt("Title").peer();
+field.setMaximumSize(new Dimension(320, field.getPreferredSize().height));
+```
+
+**Label/field forms**
+
+Use `GridBagLayout`. Give the input column `weightx = 1` and
+`fill = HORIZONTAL` to grow with the window, or `weightx = 0` and
+`fill = NONE` to keep it at its preferred width. `FormDialog` uses the growing
+form.
+
+**Fill the space on purpose**
+
+Tables and lists belong in `BorderLayout.CENTER`; that is what makes them use
+the remaining room.
+
+**Sidebar**
+
+`SideBar` manages its own layout. Keep the defaults for a full-width rail, or
+use:
+
+```java
+nav.setItemWidth(ItemWidth.CONTENT);   // natural button width
+nav.setArrangement(Arrangement.BOX_Y); // natural row height
+```
+
+### 10.4 Component sizing helpers
+
+| API | Effect |
+| --- | --- |
+| `TextBox.setSize(w, h)` | Sets the peer's preferred size (minimum height `h`, minimum width `0`). Use it for consistent form widths; it is still only a hint. |
+| `SideBar.setWidth(w)` | Fixes the rail's preferred/minimum width; height comes from the parent. |
+| `SideBar.setItemWidth(FILL / CONTENT)` | `FILL` spans the rail; `CONTENT` keeps label/icon width. |
+| `SideBar.setArrangement(GRID / BOX_Y / BOX_X / FLOW)` | `GRID` uses equal cells; `BOX_Y`/`BOX_X` use natural size along the stack; `FLOW` wraps. |
+| `SwingApp.changeDock(bar, dock)` | Moves an already-added rail to `WEST`/`EAST` and updates `dock()`. |
+| `SwingApp.add(component)` | Adds to a vertical `BoxLayout` stack; cap the width with `setMaximumSize` or a wrapper row. |
+| `FormDialog.addField(label, input)` | Adds a horizontally filling `GridBagLayout` row. |
+
+---
+
+## 11. `DataTable` — typed table with search, sort, paging, CRUD
 
 **What it is:** an `AbstractTableModel`-backed table for a list of row objects.
 It provides columns, selection, search, sorting, paging, and optional
 Add/Edit/Delete handling.
 
-### 9.1 Columns
+### 11.1 Columns
 
 `Column<T,V>` describes how to read and display a property of a row.
 
@@ -283,7 +564,7 @@ table.addColumn(Column.of("Title", String.class, MangaResponse::title)
 
 There is also the shorthand `addColumn(title, type, getter)`.
 
-### 9.2 Data and selection
+### 11.2 Data and selection
 
 ```java
 table.setItems(rows);          // replaces all rows, resets to page 0
@@ -305,7 +586,7 @@ table.onDoubleClick(this::editRow);
 Selection is cleared whenever the visible page is rebuilt. That keeps callbacks
 predictable after search/sort/page/refresh.
 
-### 9.3 Search, sort, paging
+### 11.3 Search, sort, paging
 
 ```java
 table.setSearchText("piece");  // filters across every Column.formatter value
@@ -331,7 +612,7 @@ table.sortBy(columnIndex, false);  // descending
 Page index is clamped automatically when filtering or deletion shrinks the
 result set.
 
-### 9.4 CRUD
+### 11.4 CRUD
 
 Enable the built-in toolbar and row context menu:
 
@@ -367,7 +648,7 @@ Contracts:
 For asynchronous persistence, return `Optional.empty()` and reload with
 `table.setItems(...)` in the `SwingWorker.done()` (see `MangaListScreen`).
 
-### 9.5 Parent it
+### 11.5 Parent it
 
 ```java
 panel.add(table.peer(), BorderLayout.CENTER);
@@ -375,9 +656,65 @@ panel.add(table.peer(), BorderLayout.CENTER);
 
 `peer()` is a `JPanel` containing the search toolbar, the table, and the pager.
 
+### 11.6 API reference
+
+| Method | Description |
+| --- | --- |
+| `addColumn(Column<T, ?> column)` | Adds a prebuilt column. |
+| `addColumn(String title, Class<V> type, Function<T,V> getter)` | Adds a column from a title, value type, and getter. |
+| `setItems(List<T> items)` | Replaces all rows and resets to page 0. |
+| `addItem(T item)` | Appends one row. |
+| `removeItem(int index)` | Removes the row at the data index. |
+| `updateItem(int index, T item)` | Replaces the row at the data index. |
+| `clear()` | Removes all rows. |
+| `items()` | Returns all rows. |
+| `itemAt(int index)` | Returns one row. |
+| `count()` | Returns the total row count. |
+| `filteredCount()` | Returns the row count after the current search filter. |
+| `onSelect(Consumer<T>)` | Registers a row-selection handler. |
+| `onDoubleClick(Consumer<T>)` | Registers a double-click handler. |
+| `setCreateHandler(Supplier<Optional<T>>)` | Runs on Add; a present value is appended. |
+| `setEditHandler(Function<T, Optional<T>>)` | Runs on Edit; a present value replaces the row. |
+| `setDeleteHandler(Consumer<T>)` | Runs after delete confirmation, before the local row is removed. |
+| `setCrudEnabled(boolean)` | Shows or hides the Add/Edit/Delete toolbar and row menu. |
+| `setSelectionMode(SelectionMode)` | Sets `NONE`, `SINGLE`, or `MULTIPLE`. |
+| `setSortable(boolean)` | Enables header-click sorting. |
+| `setSearchText(String)` | Filters rows using every column's display text. |
+| `setPageSize(int)` | Sets rows per page; must be positive. Resets to page 0. |
+| `setPageIndex(int)` | Selects a zero-based page; negative values throw, too-high values clamp on refresh. |
+| `nextPage()` / `previousPage()` | Moves one page. |
+| `currentPage()` | Returns the zero-based page index. |
+| `pageCount()` | Returns the total number of pages. |
+| `peer()` | Returns the `JPanel` containing toolbar, table, and pager. |
+
+`SwingDataTable<T>` adds:
+
+| Method | Description |
+| --- | --- |
+| `sortBy(int columnIndex, boolean ascending)` | Sorts by a column from code or tests. |
+| `sortColumn()` | Returns the active sort column, or `-1`. |
+| `sortAscending()` | Returns the current sort direction. |
+
+`Column<T,V>`:
+
+| Method | Description |
+| --- | --- |
+| `Column.of(title, type, getter)` / `new Column<>(...)` | Creates a column. All three arguments are required. |
+| `formatter(Function<? super V,String>)` | Display text; also used by search. |
+| `comparator(Comparator<? super V>)` | Sort order; defaults to `Comparable`, then case-insensitive strings. |
+| `renderer(TableCellRenderer)` | Custom cell rendering. |
+| `editor(TableCellEditor)` | Custom cell editing; cells are read-only by default. |
+| `width(int)` | Preferred column width; must be positive. |
+| `title()`, `valueType()` | Column metadata. |
+| `valueOf(T item)` | Reads the cell value. |
+| `format(Object value)` | Formats a value; `null` becomes `""`. |
+| `compare(T first, T second)` | Compares two rows; `null` values sort first. |
+
+`SelectionMode`: `NONE`, `SINGLE`, `MULTIPLE`.
+
 ---
 
-## 10. `FormDialog` — modal forms
+## 12. `FormDialog` — modal forms
 
 **What it is:** a small form builder with label/input rows, validation errors,
 OK/Cancel, Enter=OK, and Esc=Cancel. It returns `Optional<T>`.
@@ -412,6 +749,20 @@ FormDialog<MangaRequest> dialog = ui.form(ownerWindow, "Manga")
 Optional<MangaRequest> result = dialog.show();
 ```
 
+### 12.1 API
+
+| Method | Description |
+| --- | --- |
+| `FormDialog.create(Window owner, String title)` | Creates a dialog. `ui.form(owner, title)` is the preferred factory. |
+| `addText(String label, TextBox<? extends JComponent> input)` | Adds a label/text-box row. |
+| `addDrop(String label, DropMenu<? extends JComponent> input)` | Adds a label/drop-menu row. |
+| `addField(String label, JComponent input)` | Adds a label/custom-component row. |
+| `validate(Supplier<String> validator)` | Registers a validator that returns an error message, or `null`/blank when valid. |
+| `result(Supplier<Optional<T>> supplier)` | Registers the result builder. A present value closes the dialog; an empty value keeps it open. |
+| `show()` | Shows the dialog modally and returns the result; cancel returns `Optional.empty()`. |
+
+Fluent methods return `this` except `show()`.
+
 Notes:
 
 - `addText`, `addDrop`, and `addField` add one row each.
@@ -421,10 +772,14 @@ Notes:
 - `show()` is modal and must be called on the EDT.
 - Assign to a typed `FormDialog<T>` variable before chaining; this avoids
   needing an explicit type witness on `ui.form(...)`.
+- The input column uses `GridBagLayout` with `weightx = 1` and
+  `fill = HORIZONTAL`, so fields follow the dialog width. For a form that keeps
+  natural field widths, build a custom panel instead (see
+  [Layout managers and sizing](#9-layout-managers-and-sizing)).
 
 ---
 
-## 11. Screens and Spring integration
+## 13. Screens and Spring integration
 
 ### `LoginScreen`
 
@@ -490,9 +845,22 @@ fake for tests or a REST client for another backend.
 `MangaService`, wraps it in `ServiceMangaDataSource`, shows the login screen, and
 switches to `MainScreen` after submit.
 
+### 13.1 API
+
+| Class | Public API |
+| --- | --- |
+| `LoginScreen` | `LoginScreen(UI ui)`, `onSubmit(Consumer<Credentials>)`, record `Credentials(String email, String password)` |
+| `MainScreen` | `MainScreen(UI ui)`, `add(String label, JComponent screen)`, `select(int index)`, `sidebar()` |
+| `MangaListScreen` | `MangaListScreen(UI ui, Window owner, MangaDataSource dataSource)`, `refresh()` |
+| `MangaFormDialog` | `showCreate(Window owner, UI ui)`, `showEdit(Window owner, UI ui, MangaResponse existing)` |
+| `MangaDataSource` | `findAll()`, `create(MangaRequest)`, `update(String id, MangaRequest)`, `delete(String id)` |
+
+`add(...)` returns `this`; `refresh()` reloads in a `SwingWorker`; the form
+methods return `Optional<MangaRequest>`.
+
 ---
 
-## 12. Threading rules
+## 14. Threading rules
 
 1. Create and mutate Swing components on the EDT.
 2. Never call the database or network on the EDT.
@@ -521,7 +889,7 @@ new SwingWorker<List<MangaResponse>, Void>() {
 
 ---
 
-## 13. Theme and styling
+## 15. Theme and styling
 
 `Theme.install()` applies the system look and feel plus consistent colors, fonts,
 and table defaults. `SwingApp` calls it automatically. Available constants
@@ -534,11 +902,22 @@ panel.setBorder(Theme.cardBorder());
 panel.setBackground(Theme.SURFACE);
 ```
 
+| API | Description |
+| --- | --- |
+| `Theme.install()` | Applies the system look and feel plus the shared UI defaults. `SwingApp` calls it automatically. |
+| `Theme.cardBorder()` | Returns a line border plus `PAD` padding. |
+| `Theme.padded()` | Returns an empty border with `PAD` on all sides. |
+| `Theme.apply(Window)` | Sets the theme font on the window. |
+
+Colors: `BACKGROUND`, `SURFACE`, `BORDER`, `TEXT`, `MUTED_TEXT`, `ACCENT`,
+`DANGER`. Fonts: `FONT`, `FONT_BOLD`, `TITLE_FONT`. Spacing: `GAP` (8),
+`PAD` (16).
+
 There is no FlatLaf dependency; the theme is a small UIManager customization.
 
 ---
 
-## 14. Testing components
+## 16. Testing components
 
 Tests run headless. Do not create `JFrame` or `JDialog` in tests; instantiate
 components and run mutations on the EDT:
@@ -563,7 +942,7 @@ Existing examples:
 
 ---
 
-## 15. Cookbook
+## 17. Cookbook
 
 ### Add a new screen to the desktop app
 
@@ -599,7 +978,7 @@ Read `isbn.getText()` inside `result(...)`.
 
 ---
 
-## 16. Running and troubleshooting
+## 18. Running and troubleshooting
 
 ```bash
 ./grad.sh ui-demo     # component showcase, no database
@@ -618,7 +997,7 @@ Read `isbn.getText()` inside `result(...)`.
 
 ---
 
-## 17. Conventions
+## 19. Conventions
 
 - Create components through `UI`; screens should not instantiate `SwingXxx`.
 - Keep fluent mutators returning `this` / the interface.

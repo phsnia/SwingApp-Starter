@@ -1,8 +1,8 @@
 package com.example.HMS.GUI.Screens;
 
-import com.example.HMS.GUI.Theme;
-import com.example.HMS.GUI.UI;
-import com.example.HMS.GUI.Components.TextBox.impl.SwingTextBox;
+import com.example.HMS.GUI.Components.Core.Theme;
+import com.example.HMS.GUI.Components.Core.UI;
+import com.example.HMS.GUI.Components.TextBox.SwingTextBox;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;

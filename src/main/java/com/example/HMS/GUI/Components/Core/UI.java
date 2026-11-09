@@ -1,12 +1,15 @@
-package com.example.HMS.GUI;
+package com.example.HMS.GUI.Components.Core;
 
 import com.example.HMS.GUI.Components.DataTable.SwingDataTable;
+import com.example.HMS.GUI.Components.DragDrop.FileDropZone;
+import com.example.HMS.GUI.Components.DragDrop.SwingFileDropZone;
 import com.example.HMS.GUI.Components.DropMenu.SwingDropMenu;
 import com.example.HMS.GUI.Components.Form.FormDialog;
 import com.example.HMS.GUI.Components.MenuList.SwingMenuList;
 import com.example.HMS.GUI.Components.SideBar.SwingSideBar;
-import com.example.HMS.GUI.Components.TextBox.impl.SwingTextBox;
+import com.example.HMS.GUI.Components.TextBox.SwingTextBox;
 
+import javax.swing.JPanel;
 import java.awt.Window;
 
 /**
@@ -41,6 +44,10 @@ public class UI {
 
     public SwingSideBar sidebar() {
         return new SwingSideBar();
+    }
+
+    public FileDropZone<JPanel> fileDropZone() {
+        return new SwingFileDropZone();
     }
 
     public <T> SwingDataTable<T> table() {

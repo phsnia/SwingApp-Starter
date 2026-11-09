@@ -1,4 +1,4 @@
-package com.example.HMS.GUI;
+package com.example.HMS.GUI.Components.Core;
 
 import com.example.HMS.GUI.Components.DataTable.DataTable;
 import com.example.HMS.GUI.Components.DropMenu.DropMenu;
@@ -124,6 +124,18 @@ public class SwingApp {
         JComponent peer = bar.peer();
         String zone = bar.dock() == Dock.RIGHT ? BorderLayout.EAST : BorderLayout.WEST;
         root.add(peer, zone);
+        refresh(root);
+    }
+
+    /**
+     * Moves an already-added sidebar to the requested edge. {@link SideBar#setDock}
+     * only stores the preference; this method also updates the parent layout.
+     */
+    public <T extends JComponent> void changeDock(SideBar<T> bar, Dock dock) {
+        bar.setDock(dock); // validates LEFT/RIGHT and keeps dock() in sync
+        JComponent peer = bar.peer();
+        root.remove(peer);
+        root.add(peer, dock == Dock.RIGHT ? BorderLayout.EAST : BorderLayout.WEST);
         refresh(root);
     }
 

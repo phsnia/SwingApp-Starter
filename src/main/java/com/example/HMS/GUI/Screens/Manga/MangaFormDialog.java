@@ -1,9 +1,8 @@
 package com.example.HMS.GUI.Screens.Manga;
 
 import com.example.HMS.GUI.Components.DropMenu.SwingDropMenu;
-import com.example.HMS.GUI.Components.Form.FormDialog;
-import com.example.HMS.GUI.Components.TextBox.impl.SwingTextBox;
-import com.example.HMS.GUI.UI;
+import com.example.HMS.GUI.Components.TextBox.SwingTextBox;
+import com.example.HMS.GUI.Components.Core.UI;
 import com.example.HMS.Manga.dto.MangaRequest;
 import com.example.HMS.Manga.dto.MangaResponse;
 

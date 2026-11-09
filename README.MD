@@ -5,10 +5,12 @@ interface-first component library.
 
 ## Documentation
 
-- [Swing component library — developer guide](docs/swing-components-guide.md) —
+- [Swing component library — developer guide](src/main/java/com/example/HMS/GUI/swing-components-guide.md) —
   what each component is, its API, and usage examples.
 - [Swing component implementation plan](docs/swing-components-plan.md) — phased
   build plan and current status.
+- [Swing drag-and-drop plan](docs/swing-drag-and-drop-plan.md) — phased plan for
+  the file-drop component.
 - [Basic setup](docs/basic-setup.md)
 - [SQL-to-model workflow](docs/sql-to-model-workflow.md)
 
@@ -36,4 +38,4 @@ and then the Manga library screen:
 - Entry point: `com.example.HMS.GUI.SwingLauncher`
 
 Component examples live in `com.example.HMS.GUI.SwingDemo` and the
-[developer guide](docs/swing-components-guide.md).
+[developer guide](src/main/java/com/example/HMS/GUI/swing-components-guide.md).

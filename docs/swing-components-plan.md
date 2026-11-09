@@ -400,7 +400,7 @@ MenuList and SideBar can wait until navigation is needed.
 
 ## Implementation status (Nov 2026)
 
-See [`swing-components-guide.md`](swing-components-guide.md) for per-component
+See [`swing-components-guide.md`](../src/main/java/com/example/HMS/GUI/swing-components-guide.md) for per-component
 usage, API summaries, threading rules, and a cookbook.
 
 Phases 0–10 are implemented in `src/main/java/com/example/HMS/GUI`.

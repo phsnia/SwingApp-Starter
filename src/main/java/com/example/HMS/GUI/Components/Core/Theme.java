@@ -1,4 +1,4 @@
-package com.example.HMS.GUI;
+package com.example.HMS.GUI.Components.Core;
 
 import javax.swing.BorderFactory;
 import javax.swing.UIManager;

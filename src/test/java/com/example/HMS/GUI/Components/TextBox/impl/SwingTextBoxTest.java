@@ -1,5 +1,6 @@
 package com.example.HMS.GUI.Components.TextBox.impl;
 
+import com.example.HMS.GUI.Components.TextBox.SwingTextBox;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JPasswordField;

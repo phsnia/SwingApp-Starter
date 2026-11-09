@@ -1,8 +1,8 @@
 package com.example.HMS.GUI.Screens;
 
 import com.example.HMS.GUI.Components.SideBar.SwingSideBar;
-import com.example.HMS.GUI.Theme;
-import com.example.HMS.GUI.UI;
+import com.example.HMS.GUI.Components.Core.Theme;
+import com.example.HMS.GUI.Components.Core.UI;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

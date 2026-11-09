@@ -1,5 +1,6 @@
 package com.example.HMS.GUI;
 
+import com.example.HMS.GUI.Components.Core.UI;
 import com.example.HMS.GUI.Components.DataTable.SwingDataTable;
 import com.example.HMS.GUI.Screens.LoginScreen;
 import com.example.HMS.GUI.Screens.MainScreen;
@@ -23,6 +24,7 @@ class UiSmokeTest {
             assertThat(ui.dropMenu("A", "B").count()).isEqualTo(2);
             assertThat(ui.menuList("Actions").peer().getText()).isEqualTo("Actions");
             assertThat(ui.sidebar().peer()).isNotNull();
+            assertThat(ui.fileDropZone().peer()).isNotNull();
 
             SwingDataTable<Object> table = ui.table();
             assertThat(table.count()).isZero();
