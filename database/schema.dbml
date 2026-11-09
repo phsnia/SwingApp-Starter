@@ -1,0 +1,87 @@
+Table accounts {
+  id varchar(36) [pk]
+  username varchar(255) [not null, unique]
+  email varchar(255) [not null, unique]
+  password_hash varchar(255) [not null]
+  email_verified boolean [not null, default: false]
+  verification_token varchar(255)
+  verification_token_expiry datetime
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    email [name: 'idx_accounts_email']
+  }
+}
+
+Table sessions {
+  id varchar(36) [pk]
+  user_id varchar(36) [not null]
+  token_hash varchar(255) [not null, unique]
+  expires_at datetime [not null]
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'idx_sessions_user_id']
+    expires_at [name: 'idx_sessions_expires_at']
+  }
+}
+
+Table roles {
+  id varchar(36) [pk]
+  name varchar(100) [not null, unique]
+  description text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table permissions {
+  id varchar(36) [pk]
+  name varchar(100) [not null, unique]
+  description text
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table account_roles {
+  account_id varchar(36) [not null]
+  role_id varchar(36) [not null]
+  assigned_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (account_id, role_id) [pk]
+    role_id [name: 'idx_account_roles_role_id']
+  }
+}
+
+Table role_permissions {
+  role_id varchar(36) [not null]
+  permission_id varchar(36) [not null]
+
+  indexes {
+    (role_id, permission_id) [pk]
+    permission_id [name: 'idx_role_permissions_permission_id']
+  }
+}
+
+Table manga {
+  id varchar(36) [pk]
+  title varchar(255) [not null]
+  slug varchar(255) [not null, unique]
+  description text
+  cover_url text
+  author varchar(255)
+  artist varchar(255)
+  status varchar(50) [not null, default: 'ongoing']
+  type varchar(50) [not null, default: 'manga']
+  release_year smallint
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+// Relationships
+
+Ref: sessions.user_id > accounts.id [delete: cascade]
+
+Ref: account_roles.account_id > accounts.id [delete: cascade]
+Ref: account_roles.role_id > roles.id [delete: cascade]
+
+Ref: role_permissions.role_id > roles.id [delete: cascade]
+Ref: role_permissions.permission_id > permissions.id [delete: cascade]

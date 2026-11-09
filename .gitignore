@@ -1,6 +1,12 @@
 HELP.md
 .gradle
 build/
+
+# Local database credentials for the Hibernate Tools generator
+/src/main/resources/hibernate-generator.properties
+
+# Local runtime settings (DB_PASSWORD etc.)
+/.env
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

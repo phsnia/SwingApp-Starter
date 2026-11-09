@@ -1,0 +1,5 @@
+<hibernate-reverse-engineering>
+  <!-- MySQL treats the database name as the catalog. All three filters are
+       required by Hibernate Tools' binder. -->
+  <table-filter match-catalog="hms" match-schema=".*" match-name="manga"/>
+</hibernate-reverse-engineering>

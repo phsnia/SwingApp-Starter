@@ -1,0 +1,21 @@
+title,slug,description,cover_url,author,artist,status,type,release_year
+One Piece,one-piece,"A young pirate sets out to find the legendary One Piece treasure.",https://example.com/covers/one-piece.jpg,Eiichiro Oda,Eiichiro Oda,ongoing,manga,1997
+Naruto,naruto,"A young ninja dreams of becoming the strongest leader of his village.",https://example.com/covers/naruto.jpg,Masashi Kishimoto,Masashi Kishimoto,completed,manga,1999
+Bleach,bleach,"A teenager gains the powers of a Soul Reaper and protects humans from evil spirits.",https://example.com/covers/bleach.jpg,Tite Kubo,Tite Kubo,completed,manga,2001
+Attack on Titan,attack-on-titan,"Humanity fights for survival against enormous humanoid creatures.",https://example.com/covers/aot.jpg,Hajime Isayama,Hajime Isayama,completed,manga,2009
+Death Note,death-note,"A student discovers a notebook that allows him to kill anyone by writing their name.",https://example.com/covers/death-note.jpg,Tsugumi Ohba,Takeshi Obata,completed,manga,2003
+Dragon Ball,dragon-ball,"A martial artist travels the world searching for magical Dragon Balls.",https://example.com/covers/dragon-ball.jpg,Akira Toriyama,Akira Toriyama,completed,manga,1984
+My Hero Academia,my-hero-academia,"A powerless boy dreams of becoming a professional hero in a world of superpowers.",https://example.com/covers/mha.jpg,Kohei Horikoshi,Kohei Horikoshi,completed,manga,2014
+Jujutsu Kaisen,jujutsu-kaisen,"A student becomes involved in a secret world of curses and sorcerers.",https://example.com/covers/jjk.jpg,Gege Akutami,Gege Akutami,completed,manga,2018
+Demon Slayer,demon-slayer,"A young swordsman searches for a cure for his demonized sister.",https://example.com/covers/demon-slayer.jpg,Koyoharu Gotouge,Koyoharu Gotouge,completed,manga,2016
+Chainsaw Man,chainsaw-man,"A young devil hunter gains chainsaw powers and enters a dangerous new life.",https://example.com/covers/chainsaw-man.jpg,Tatsuki Fujimoto,Tatsuki Fujimoto,ongoing,manga,2018
+Solo Leveling,solo-leveling,"The weakest hunter gains a mysterious system that allows him to level up.",https://example.com/covers/solo-leveling.jpg,Chugong,DUBU,completed,manhwa,2018
+Tower of God,tower-of-god,"A young boy enters a mysterious tower where every floor presents a new challenge.",https://example.com/covers/tower-of-god.jpg,SIU,SIU,ongoing,manhwa,2010
+The Beginning After the End,the-beginning-after-the-end,"A powerful king is reincarnated into a world of magic and adventure.",https://example.com/covers/tbate.jpg,TurtleMe,Fuyuki23,ongoing,manhwa,2018
+Omniscient Reader,omniscient-reader,"A reader discovers that the world has become the setting of his favorite novel.",https://example.com/covers/orv.jpg,Sing Shong,Redice Studio,ongoing,manhwa,2020
+Lookism,lookism,"A bullied student discovers he can switch between two completely different bodies.",https://example.com/covers/lookism.jpg,Park Tae-jun,Park Tae-jun,ongoing,manhwa,2014
+The King's Avatar,the-kings-avatar,"A professional esports player rebuilds his career after being forced off his team.",https://example.com/covers/kings-avatar.jpg,Butterfly Blue,DIXIAO,completed,manhua,2011
+Martial Peak,martial-peak,"A young disciple begins a long journey toward the peak of martial arts.",https://example.com/covers/martial-peak.jpg,Momo,PIJIANG,completed,manhua,2018
+Apotheosis,apotheosis,"A fallen noble discovers the secrets of cultivation and begins his rise to power.",https://example.com/covers/apotheosis.jpg,Ransang,Unknown,ongoing,manhua,2015
+Blue Lock,blue-lock,"Young football players compete in an extreme training program to become the world's greatest striker.",https://example.com/covers/blue-lock.jpg,Muneyuki Kaneshiro,Yusuke Nomura,ongoing,manga,2018
+Vinland Saga,vinland-saga,"A young warrior seeks revenge in the Viking world while discovering the meaning of true peace.",https://example.com/covers/vinland-saga.jpg,Makoto Yukimura,Makoto Yukimura,completed,manga,2005
